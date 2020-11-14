@@ -214,10 +214,10 @@ void b2ContactSolver::InitializeVelocityConstraints()
 			// Setup a velocity bias for restitution.
 			vcp->velocityBias = 0.0f;
 			float vRel = b2Dot(vc->normal, vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA));
-			if (vRel < -vc->threshold)
-			{
-				vcp->velocityBias = -vc->restitution * vRel;
-			}
+			//if (vRel < -vc->threshold)
+			//{
+			//	vcp->velocityBias += -vc->restitution * vRel;
+			//}
 		}
 
 		// If we have two points, then prepare the block solver.

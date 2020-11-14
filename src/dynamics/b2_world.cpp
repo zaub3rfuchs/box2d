@@ -52,7 +52,7 @@ b2World::b2World(const b2Vec2& gravity)
 	m_jointCount = 0;
 
 	m_warmStarting = true;
-	m_continuousPhysics = true;
+	m_continuousPhysics = false;
 	m_subStepping = false;
 
 	m_stepComplete = true;
