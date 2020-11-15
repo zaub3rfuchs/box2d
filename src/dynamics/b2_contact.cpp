@@ -179,14 +179,14 @@ void b2Contact::Update(b2ContactListener* listener)
 
 	b2Body* bodyA = m_fixtureA->GetBody();
 	b2Body* bodyB = m_fixtureB->GetBody();
-	const b2Transform& xfA = bodyA->GetTransform();
-	const b2Transform& xfB = bodyB->GetTransform();
+	const b2Shape* shapeA = m_fixtureA->GetShape();
+	const b2Shape* shapeB = m_fixtureB->GetShape();
 
 	// Is this contact a sensor?
 	if (sensor)
 	{
-		const b2Shape* shapeA = m_fixtureA->GetShape();
-		const b2Shape* shapeB = m_fixtureB->GetShape();
+		const b2Transform& xfA = bodyA->GetTransform();
+		const b2Transform& xfB = bodyB->GetTransform();
 		touching = b2TestOverlap(shapeA, m_indexA, shapeB, m_indexB, xfA, xfB);
 
 		// Sensors don't generate manifolds.
@@ -194,7 +194,24 @@ void b2Contact::Update(b2ContactListener* listener)
 	}
 	else
 	{
+		// Compute TOI
+		//
+		b2TOIInput input;
+		input.proxyA.Set(shapeA, m_indexA);
+		input.proxyB.Set(shapeB, m_indexB);
+		input.sweepA = bodyA->m_sweep;
+		input.sweepB = bodyB->m_sweep;
+		input.tMax = 1.0f;
+
+		b2TOIOutput output;
+		b2TimeOfImpact(&output, &input);
+
+		b2Transform xfA, xfB;
+		input.sweepA.GetTransform(&xfA, output.t);
+		input.sweepB.GetTransform(&xfB, output.t);
+
 		Evaluate(&m_manifold, xfA, xfB);
+
 		touching = m_manifold.pointCount > 0;
 
 		// Match old contact ids to new contact ids and copy the
@@ -217,12 +234,6 @@ void b2Contact::Update(b2ContactListener* listener)
 					break;
 				}
 			}
-		}
-
-		if (touching != wasTouching)
-		{
-			bodyA->SetAwake(true);
-			bodyB->SetAwake(true);
 		}
 	}
 

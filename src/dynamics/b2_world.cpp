@@ -52,7 +52,7 @@ b2World::b2World(const b2Vec2& gravity)
 	m_jointCount = 0;
 
 	m_warmStarting = true;
-	m_continuousPhysics = true;
+	m_continuousPhysics = false;
 	m_subStepping = false;
 
 	m_stepComplete = true;
@@ -902,6 +902,31 @@ void b2World::SolveTOI(const b2TimeStep& step)
 	}
 }
 
+// TOI based
+// Collide
+// Build Islands
+// Per Island
+//  - apply forces
+//  - apply warm starting
+//  - solve velocity constraints
+//  - apply velocities
+//  - solve position constraints
+// Update broad-phase
+// Perform TOI loop
+
+// Predictive based
+// Apply forces
+// Apply warm starting
+// Predict new transform
+// Collide with TOI
+// Build islands
+// Per Island
+//  - solve velocity constraints
+//  - apply velocity
+//  - solve position constraints
+//  - update sleep
+
+
 void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 {
 	b2Timer stepTimer;
@@ -932,7 +957,54 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 
 	step.warmStarting = m_warmStarting;
 	
+	for (b2Body* b = m_bodyList; b; b = b->m_next)
+	{
+		if (b->IsAwake() == false || b->IsEnabled() == false)
+		{
+			continue;
+		}
+
+		b2Vec2 c = b->m_sweep.c;
+		float a = b->m_sweep.a;
+		b2Vec2 v = b->m_linearVelocity;
+		float w = b->m_angularVelocity;
+
+		// Store positions for continuous collision.
+		b->m_sweep.c0 = b->m_sweep.c;
+		b->m_sweep.a0 = b->m_sweep.a;
+
+		// Stage 1 - apply forces
+		if (b->m_type == b2_dynamicBody)
+		{
+			// Integrate velocities.
+			v += dt * b->m_invMass * (b->m_gravityScale * b->m_mass * m_gravity + b->m_force);
+			w += dt * b->m_invI * b->m_torque;
+
+			// Apply damping.
+			// ODE: dv/dt + c * v = 0
+			// Solution: v(t) = v0 * exp(-c * t)
+			// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
+			// v2 = exp(-c * dt) * v1
+			// Pade approximation:
+			// v2 = v1 * 1 / (1 + c * dt)
+			v *= 1.0f / (1.0f + dt * b->m_linearDamping);
+			w *= 1.0f / (1.0f + dt * b->m_angularDamping);
+		}
+
+		// Stage 2 - warm starting
+		for (b2ContactEdge* ce = b->m_contactList; ce; ce = ce->next)
+		{
+
+		}
+
+		for (b2JointEdge* je = b->m_jointList; je; je = je->next)
+		{
+
+		}
+	}
+
 	// Update contacts. This is where some contacts are destroyed.
+	if (step.dt > 0.0f)
 	{
 		b2Timer timer;
 		m_contactManager.Collide();
@@ -948,7 +1020,7 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 	}
 
 	// Handle TOI events.
-	if (m_continuousPhysics && step.dt > 0.0f)
+	if (m_continuousPhysics && step.dt > 0.0f && false)
 	{
 		b2Timer timer;
 		SolveTOI(step);
