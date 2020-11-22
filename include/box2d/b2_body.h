@@ -437,6 +437,7 @@ private:
 
 	b2Transform m_xf;		// the body origin transform
 	b2Sweep m_sweep;		// the swept motion for CCD
+	b2Sweep m_predictedSweep;
 
 	b2Vec2 m_linearVelocity;
 	float m_angularVelocity;

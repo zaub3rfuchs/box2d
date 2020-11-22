@@ -957,9 +957,12 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 
 	step.warmStarting = m_warmStarting;
 	
+	// TODO fast bodies only
 	for (b2Body* b = m_bodyList; b; b = b->m_next)
 	{
-		if (b->IsAwake() == false || b->IsEnabled() == false)
+		if (b->IsAwake() == false ||
+			b->IsEnabled() == false ||
+			b->m_type != b2_dynamicBody)
 		{
 			continue;
 		}
@@ -969,39 +972,33 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 		b2Vec2 v = b->m_linearVelocity;
 		float w = b->m_angularVelocity;
 
-		// Store positions for continuous collision.
-		b->m_sweep.c0 = b->m_sweep.c;
-		b->m_sweep.a0 = b->m_sweep.a;
-
 		// Stage 1 - apply forces
-		if (b->m_type == b2_dynamicBody)
-		{
-			// Integrate velocities.
-			v += dt * b->m_invMass * (b->m_gravityScale * b->m_mass * m_gravity + b->m_force);
-			w += dt * b->m_invI * b->m_torque;
+		v += dt * b->m_invMass * (b->m_gravityScale * b->m_mass * m_gravity + b->m_force);
+		w += dt * b->m_invI * b->m_torque;
 
-			// Apply damping.
-			// ODE: dv/dt + c * v = 0
-			// Solution: v(t) = v0 * exp(-c * t)
-			// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
-			// v2 = exp(-c * dt) * v1
-			// Pade approximation:
-			// v2 = v1 * 1 / (1 + c * dt)
-			v *= 1.0f / (1.0f + dt * b->m_linearDamping);
-			w *= 1.0f / (1.0f + dt * b->m_angularDamping);
-		}
+		// Apply damping.
+		// ODE: dv/dt + c * v = 0
+		// Solution: v(t) = v0 * exp(-c * t)
+		// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
+		// v2 = exp(-c * dt) * v1
+		// Pade approximation:
+		// v2 = v1 * 1 / (1 + c * dt)
+		v *= 1.0f / (1.0f + dt * b->m_linearDamping);
+		w *= 1.0f / (1.0f + dt * b->m_angularDamping);
 
-		// Stage 2 - warm starting
-		for (b2ContactEdge* ce = b->m_contactList; ce; ce = ce->next)
-		{
+		// Stage 2 - warm start
+		// TODO contacts are not necessarily valid though. Skip this for now.
 
-		}
+		// Stage 3 - predict new transforms
+		b->m_predictedSweep.c0 = c;
+		b->m_predictedSweep.a0 = a;
+		b->m_predictedSweep.c = c + dt * v;
+		b->m_predictedSweep.a = a + dt * w;
 
-		for (b2JointEdge* je = b->m_jointList; je; je = je->next)
-		{
-
-		}
+		// Stage 4 - update broad-phase
 	}
+
+
 
 	// Update contacts. This is where some contacts are destroyed.
 	if (step.dt > 0.0f)
