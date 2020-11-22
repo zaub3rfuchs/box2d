@@ -207,8 +207,8 @@ void b2Contact::Update(b2ContactListener* listener)
 		b2TimeOfImpact(&output, &input);
 
 		b2Transform xfA, xfB;
-		input.sweepA.GetTransform(&xfA, output.t);
-		input.sweepB.GetTransform(&xfB, output.t);
+		bodyA->m_sweep.GetTransform(&xfA, output.t);
+		bodyB->m_sweep.GetTransform(&xfB, output.t);
 
 		Evaluate(&m_manifold, xfA, xfB);
 
