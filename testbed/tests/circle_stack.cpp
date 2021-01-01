@@ -28,7 +28,7 @@ public:
 
 	enum
 	{
-		e_count = 1
+		e_count = 2
 	};
 
 	CircleStack()

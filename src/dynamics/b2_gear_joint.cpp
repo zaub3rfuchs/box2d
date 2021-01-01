@@ -69,9 +69,9 @@ b2GearJoint::b2GearJoint(const b2GearJointDef* def)
 
 	// Get geometry of joint1
 	b2Transform xfA = m_bodyA->m_xf;
-	float aA = m_bodyA->m_sweep.a;
+	float aA = m_bodyA->m_sweep.a1;
 	b2Transform xfC = m_bodyC->m_xf;
-	float aC = m_bodyC->m_sweep.a;
+	float aC = m_bodyC->m_sweep.a1;
 
 	if (m_typeA == e_revoluteJoint)
 	{
@@ -104,9 +104,9 @@ b2GearJoint::b2GearJoint(const b2GearJointDef* def)
 
 	// Get geometry of joint2
 	b2Transform xfB = m_bodyB->m_xf;
-	float aB = m_bodyB->m_sweep.a;
+	float aB = m_bodyB->m_sweep.a1;
 	b2Transform xfD = m_bodyD->m_xf;
-	float aD = m_bodyD->m_sweep.a;
+	float aD = m_bodyD->m_sweep.a1;
 
 	if (m_typeB == e_revoluteJoint)
 	{

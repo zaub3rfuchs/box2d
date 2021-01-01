@@ -427,8 +427,6 @@ private:
 	// It may lie, depending on the collideConnected flag.
 	bool ShouldCollide(const b2Body* other) const;
 
-	void Advance(float t);
-
 	b2BodyType m_type;
 
 	uint16 m_flags;
@@ -437,7 +435,6 @@ private:
 
 	b2Transform m_xf;		// the body origin transform
 	b2Sweep m_sweep;		// the swept motion for CCD
-	b2Sweep m_predictedSweep;
 
 	b2Vec2 m_linearVelocity;
 	float m_angularVelocity;
@@ -486,12 +483,12 @@ inline const b2Vec2& b2Body::GetPosition() const
 
 inline float b2Body::GetAngle() const
 {
-	return m_sweep.a;
+	return m_sweep.a1;
 }
 
 inline const b2Vec2& b2Body::GetWorldCenter() const
 {
-	return m_sweep.c;
+	return m_sweep.c1;
 }
 
 inline const b2Vec2& b2Body::GetLocalCenter() const
@@ -578,7 +575,7 @@ inline b2Vec2 b2Body::GetLocalVector(const b2Vec2& worldVector) const
 
 inline b2Vec2 b2Body::GetLinearVelocityFromWorldPoint(const b2Vec2& worldPoint) const
 {
-	return m_linearVelocity + b2Cross(m_angularVelocity, worldPoint - m_sweep.c);
+	return m_linearVelocity + b2Cross(m_angularVelocity, worldPoint - m_sweep.c1);
 }
 
 inline b2Vec2 b2Body::GetLinearVelocityFromLocalPoint(const b2Vec2& localPoint) const
@@ -750,7 +747,7 @@ inline void b2Body::ApplyForce(const b2Vec2& force, const b2Vec2& point, bool wa
 	if (m_flags & e_awakeFlag)
 	{
 		m_force += force;
-		m_torque += b2Cross(point - m_sweep.c, force);
+		m_torque += b2Cross(point - m_sweep.c1, force);
 	}
 }
 
@@ -808,7 +805,7 @@ inline void b2Body::ApplyLinearImpulse(const b2Vec2& impulse, const b2Vec2& poin
 	if (m_flags & e_awakeFlag)
 	{
 		m_linearVelocity += m_invMass * impulse;
-		m_angularVelocity += m_invI * b2Cross(point - m_sweep.c, impulse);
+		m_angularVelocity += m_invI * b2Cross(point - m_sweep.c1, impulse);
 	}
 }
 
@@ -852,18 +849,8 @@ inline void b2Body::ApplyAngularImpulse(float impulse, bool wake)
 
 inline void b2Body::SynchronizeTransform()
 {
-	m_xf.q.Set(m_sweep.a);
-	m_xf.p = m_sweep.c - b2Mul(m_xf.q, m_sweep.localCenter);
-}
-
-inline void b2Body::Advance(float alpha)
-{
-	// Advance to the new safe time. This doesn't sync the broad-phase.
-	m_sweep.Advance(alpha);
-	m_sweep.c = m_sweep.c0;
-	m_sweep.a = m_sweep.a0;
-	m_xf.q.Set(m_sweep.a);
-	m_xf.p = m_sweep.c - b2Mul(m_xf.q, m_sweep.localCenter);
+	m_xf.q.Set(m_sweep.a1);
+	m_xf.p = m_sweep.c1 - b2Mul(m_xf.q, m_sweep.localCenter);
 }
 
 inline b2World* b2Body::GetWorld()

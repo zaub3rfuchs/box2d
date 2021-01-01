@@ -212,7 +212,7 @@ void b2ContactSolver::InitializeVelocityConstraints()
 			vcp->tangentMass = kTangent > 0.0f ? 1.0f /  kTangent : 0.0f;
 
 			// Setup a velocity bias for restitution.
-			vcp->velocityBias = 0.0f;
+			vcp->velocityBias = -b2Max(0.0f, worldManifold.separations[j] * m_step.inv_dt);
 			float vRel = b2Dot(vc->normal, vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA));
 			//if (vRel < -vc->threshold)
 			//{

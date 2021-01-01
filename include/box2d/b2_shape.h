@@ -95,6 +95,10 @@ public:
 	/// @param density the density in kilograms per meter squared.
 	virtual void ComputeMass(b2MassData* massData, float density) const = 0;
 
+	/// @brief Get the 
+	/// @return 
+	virtual float GetMinExtent() const { return 0.0f; }
+
 	Type m_type;
 
 	/// Radius of a shape. For polygonal shapes this must be b2_polygonRadius. There is no support for

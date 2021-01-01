@@ -484,8 +484,8 @@ float b2WheelJoint::GetJointLinearSpeed() const
 
 	b2Vec2 rA = b2Mul(bA->m_xf.q, m_localAnchorA - bA->m_sweep.localCenter);
 	b2Vec2 rB = b2Mul(bB->m_xf.q, m_localAnchorB - bB->m_sweep.localCenter);
-	b2Vec2 p1 = bA->m_sweep.c + rA;
-	b2Vec2 p2 = bB->m_sweep.c + rB;
+	b2Vec2 p1 = bA->m_sweep.c1 + rA;
+	b2Vec2 p2 = bB->m_sweep.c1 + rB;
 	b2Vec2 d = p2 - p1;
 	b2Vec2 axis = b2Mul(bA->m_xf.q, m_localXAxisA);
 
@@ -502,7 +502,7 @@ float b2WheelJoint::GetJointAngle() const
 {
 	b2Body* bA = m_bodyA;
 	b2Body* bB = m_bodyB;
-	return bB->m_sweep.a - bA->m_sweep.a;
+	return bB->m_sweep.a1 - bA->m_sweep.a1;
 }
 
 float b2WheelJoint::GetJointAngularSpeed() const

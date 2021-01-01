@@ -345,7 +345,7 @@ float b2RevoluteJoint::GetJointAngle() const
 {
 	b2Body* bA = m_bodyA;
 	b2Body* bB = m_bodyB;
-	return bB->m_sweep.a - bA->m_sweep.a - m_referenceAngle;
+	return bB->m_sweep.a1 - bA->m_sweep.a1 - m_referenceAngle;
 }
 
 float b2RevoluteJoint::GetJointSpeed() const
