@@ -572,7 +572,7 @@ void b2World::Solve(const b2TimeStep& step)
 			}
 
 			// Update fixtures (for broad-phase).
-			b->SynchronizeFixtures();
+			b->SynchronizeFixturesPredicted();
 		}
 
 		// Look for new contacts.
@@ -645,39 +645,8 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 	{
 		b2Timer timer;
 
-		// Predicted movement in broadphase
-		for (b2Body* b = m_bodyList; b; b = b->m_next)
-		{
-			if (b->IsAwake() == false || b->IsEnabled() == false)
-			{
-				continue;
-			}
+		// TODO movement during first time step for a body is not predicted in broadphase
 
-			b2Vec2 v = b->m_linearVelocity;
-			float w = b->m_angularVelocity;
-
-			// Stage 1 - apply forces
-			v += dt * b->m_invMass * (b->m_gravityScale * b->m_mass * m_gravity + b->m_force);
-			w += dt * b->m_invI * b->m_torque;
-
-			// Apply damping.
-			// ODE: dv/dt + c * v = 0
-			// Solution: v(t) = v0 * exp(-c * t)
-			// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
-			// v2 = exp(-c * dt) * v1
-			// Pade approximation:
-			// v2 = v1 * 1 / (1 + c * dt)
-			v *= 1.0f / (1.0f + dt * b->m_linearDamping);
-			w *= 1.0f / (1.0f + dt * b->m_angularDamping);
-
-			// Stage 3 - predict new transforms
-			b->m_sweep.c2 = b->m_sweep.c1 + dt * v;
-			b->m_sweep.a2 = b->m_sweep.a1 + dt * w;
-
-			b->SynchronizeFixtures();
-		}
-
-		m_contactManager.FindNewContacts();
 		m_contactManager.Collide();
 		m_profile.collide = timer.GetMilliseconds();
 	}
@@ -980,8 +949,7 @@ void b2World::ShiftOrigin(const b2Vec2& newOrigin)
 	for (b2Body* b = m_bodyList; b; b = b->m_next)
 	{
 		b->m_xf.p -= newOrigin;
-		b->m_sweep.c1 -= newOrigin;
-		b->m_sweep.c2 -= newOrigin;
+		b->m_position -= newOrigin;
 	}
 
 	for (b2Joint* j = m_jointList; j; j = j->m_next)

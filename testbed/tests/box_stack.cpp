@@ -109,7 +109,6 @@ public:
 
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
-				bd.bullet = true;
 				bd.position.Set(-31.0f, 5.0f);
 
 				m_bullet = m_world->CreateBody(&bd);

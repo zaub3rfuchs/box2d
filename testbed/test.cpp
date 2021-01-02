@@ -253,7 +253,6 @@ void Test::LaunchBomb(const b2Vec2& position, const b2Vec2& velocity)
 	b2BodyDef bd;
 	bd.type = b2_dynamicBody;
 	bd.position = position;
-	bd.bullet = true;
 	m_bomb = m_world->CreateBody(&bd);
 	m_bomb->SetLinearVelocity(velocity);
 	

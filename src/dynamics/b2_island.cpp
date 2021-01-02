@@ -196,8 +196,8 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	{
 		b2Body* b = m_bodies[i];
 
-		b2Vec2 c = b->m_sweep.c1;
-		float a = b->m_sweep.a1;
+		b2Vec2 c = b->m_position;
+		float a = b->m_angle;
 		b2Vec2 v = b->m_linearVelocity;
 		float w = b->m_angularVelocity;
 
@@ -331,8 +331,8 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 	for (int32 i = 0; i < m_bodyCount; ++i)
 	{
 		b2Body* body = m_bodies[i];
-		body->m_sweep.c1 = m_positions[i].c;
-		body->m_sweep.a1 = m_positions[i].a;
+		body->m_position = m_positions[i].c;
+		body->m_angle = m_positions[i].a;
 		body->m_linearVelocity = m_velocities[i].v;
 		body->m_angularVelocity = m_velocities[i].w;
 		body->SynchronizeTransform();
@@ -379,6 +379,36 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 				b->SetAwake(false);
 			}
 		}
+	}
+
+	for (int32 i = 0; i < m_bodyCount; ++i)
+	{
+		b2Body* b = m_bodies[i];
+		if (b->IsAwake() == false || b->IsEnabled() == false)
+		{
+			continue;
+		}
+
+		b2Vec2 v = b->m_linearVelocity;
+		float w = b->m_angularVelocity;
+
+		// Stage 1 - apply forces
+		v += step.dt * b->m_invMass * (b->m_gravityScale * b->m_mass * gravity + b->m_force);
+		w += step.dt * b->m_invI * b->m_torque;
+
+		// Apply damping.
+		// ODE: dv/dt + c * v = 0
+		// Solution: v(t) = v0 * exp(-c * t)
+		// Time step: v(t + dt) = v0 * exp(-c * (t + dt)) = v0 * exp(-c * t) * exp(-c * dt) = v * exp(-c * dt)
+		// v2 = exp(-c * dt) * v1
+		// Pade approximation:
+		// v2 = v1 * 1 / (1 + c * dt)
+		v *= 1.0f / (1.0f + step.dt * b->m_linearDamping);
+		w *= 1.0f / (1.0f + step.dt * b->m_angularDamping);
+
+		// Stage 3 - predict new transforms
+		b->m_predictedPosition = b->m_position + step.dt * v;
+		b->m_predictedAngle = b->m_angle + step.dt * w;
 	}
 }
 

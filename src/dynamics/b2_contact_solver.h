@@ -41,6 +41,7 @@ struct b2VelocityConstraintPoint
 	float normalMass;
 	float tangentMass;
 	float velocityBias;
+	float separation;
 };
 
 struct b2ContactVelocityConstraint
@@ -84,7 +85,6 @@ public:
 	void StoreImpulses();
 
 	bool SolvePositionConstraints();
-	bool SolveTOIPositionConstraints(int32 toiIndexA, int32 toiIndexB);
 
 	b2TimeStep m_step;
 	b2Position* m_positions;

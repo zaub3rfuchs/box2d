@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 #include "test.h"
+#include "imgui/imgui.h"
 
 class BulletTest : public Test
 {
@@ -59,10 +60,9 @@ public:
 			//m_x = RandomFloat(-1.0f, 1.0f);
 			m_x = 0.20352793f;
 			bd.position.Set(m_x, 10.0f);
-			bd.bullet = true;
 
 			m_bullet = m_world->CreateBody(&bd);
-			m_bullet->CreateFixture(&box, 100.0f);
+			m_bullet->CreateFixture(&box, 1.0f);
 
 			m_bullet->SetLinearVelocity(b2Vec2(0.0f, -50.0f));
 		}
@@ -94,6 +94,20 @@ public:
 		b2_toiMaxRootIters = 0;
 	}
 
+	void UpdateUI() override
+	{
+		ImGui::SetNextWindowPos(ImVec2(10.0f, 100.0f));
+		ImGui::SetNextWindowSize(ImVec2(200.0f, 60.0f));
+		ImGui::Begin("Bullet Test", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+		if (ImGui::Button("Launch"))
+		{
+			Launch();
+		}
+
+		ImGui::End();
+	}
+
 	void Step(Settings& settings) override
 	{
 		Test::Step(settings);
@@ -118,11 +132,6 @@ public:
 			g_debugDraw.DrawString(5, m_textLine, "ave toi root iters = %3.1f, max toi root iters = %d",
 				b2_toiRootIters / float(b2_toiCalls), b2_toiMaxRootIters);
 			m_textLine += m_textIncrement;
-		}
-
-		if (m_stepCount % 60 == 0)
-		{
-			Launch();
 		}
 	}
 

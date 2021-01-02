@@ -304,16 +304,7 @@ void b2CollideEdgeAndPolygon(b2Manifold* manifold,
 	float radius = polygonB->m_radius + edgeA->m_radius;
 
 	b2EPAxis edgeAxis = b2ComputeEdgeSeparation(tempPolygonB, v1, normal1);
-	if (edgeAxis.separation > radius)
-	{
-		return;
-	}
-
 	b2EPAxis polygonAxis = b2ComputePolygonSeparation(tempPolygonB, v1, v2);
-	if (polygonAxis.separation > radius)
-	{
-		return;
-	}
 
 	// Use hysteresis for jitter reduction.
 	const float k_relativeTol = 0.98f;
@@ -491,34 +482,24 @@ void b2CollideEdgeAndPolygon(b2Manifold* manifold,
 		manifold->localPoint = polygonB->m_vertices[ref.i1];
 	}
 
-	int32 pointCount = 0;
 	for (int32 i = 0; i < b2_maxManifoldPoints; ++i)
 	{
-		float separation;
+		b2ManifoldPoint* cp = manifold->points + i;
 
-		separation = b2Dot(ref.normal, clipPoints2[i].v - ref.v1);
-
-		if (separation <= radius)
+		if (primaryAxis.type == b2EPAxis::e_edgeA)
 		{
-			b2ManifoldPoint* cp = manifold->points + pointCount;
-
-			if (primaryAxis.type == b2EPAxis::e_edgeA)
-			{
-				cp->localPoint = b2MulT(xf, clipPoints2[i].v);
-				cp->id = clipPoints2[i].id;
-			}
-			else
-			{
-				cp->localPoint = clipPoints2[i].v;
-				cp->id.cf.typeA = clipPoints2[i].id.cf.typeB;
-				cp->id.cf.typeB = clipPoints2[i].id.cf.typeA;
-				cp->id.cf.indexA = clipPoints2[i].id.cf.indexB;
-				cp->id.cf.indexB = clipPoints2[i].id.cf.indexA;
-			}
-
-			++pointCount;
+			cp->localPoint = b2MulT(xf, clipPoints2[i].v);
+			cp->id = clipPoints2[i].id;
+		}
+		else
+		{
+			cp->localPoint = clipPoints2[i].v;
+			cp->id.cf.typeA = clipPoints2[i].id.cf.typeB;
+			cp->id.cf.typeB = clipPoints2[i].id.cf.typeA;
+			cp->id.cf.indexA = clipPoints2[i].id.cf.indexB;
+			cp->id.cf.indexB = clipPoints2[i].id.cf.indexA;
 		}
 	}
 
-	manifold->pointCount = pointCount;
+	manifold->pointCount = b2_maxManifoldPoints;
 }

@@ -199,16 +199,16 @@ void b2Contact::Update(b2ContactListener* listener)
 		b2TOIInput input;
 		input.proxyA.Set(shapeA, m_indexA);
 		input.proxyB.Set(shapeB, m_indexB);
-		input.sweepA = bodyA->m_sweep;
-		input.sweepB = bodyB->m_sweep;
+		input.sweepA = bodyA->GetSweep();
+		input.sweepB = bodyB->GetSweep();
 		input.tMax = 1.0f;
 
 		b2TOIOutput output;
 		b2TimeOfImpact(&output, &input);
 
 		b2Transform xfA, xfB;
-		bodyA->m_sweep.GetTransform(&xfA, output.t);
-		bodyB->m_sweep.GetTransform(&xfB, output.t);
+		input.sweepA.GetTransform(&xfA, output.t);
+		input.sweepB.GetTransform(&xfB, output.t);
 
 		Evaluate(&m_manifold, xfA, xfB);
 
