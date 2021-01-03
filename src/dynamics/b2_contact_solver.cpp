@@ -218,14 +218,6 @@ void b2ContactSolver::InitializeVelocityConstraints()
 			//{
 			//	vcp->velocityBias += -vc->restitution * vRel;
 			//}
-
-			vcp->separation = worldManifold.separations[j];
-
-			if (vcp->separation > b2_linearSlop)
-			{
-				vcp->normalImpulse = 0.0f;
-				vcp->tangentImpulse = 0.0f;
-			}
 		}
 
 		// If we have two points, then prepare the block solver.
@@ -332,12 +324,6 @@ void b2ContactSolver::SolveVelocityConstraints()
 		for (int32 j = 0; j < pointCount; ++j)
 		{
 			b2VelocityConstraintPoint* vcp = vc->points + j;
-
-			// No friction for predicted contacts
-			if (vcp->separation > b2_linearSlop)
-			{
-				continue;
-			}
 
 			// Relative velocity at contact
 			b2Vec2 dv = vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA);
@@ -725,7 +711,7 @@ bool b2ContactSolver::SolvePositionConstraints()
 			b2Vec2 normal = psm.normal;
 
 			b2Vec2 point = psm.point;
-			float separation = psm.separation;
+			float separation = b2Min(0.0f, psm.separation);
 
 			b2Vec2 rA = point - cA;
 			b2Vec2 rB = point - cB;
@@ -733,8 +719,8 @@ bool b2ContactSolver::SolvePositionConstraints()
 			// Track max constraint error.
 			minSeparation = b2Min(minSeparation, separation);
 
-			// Prevent large corrections and allow slop.
-			float C = b2Clamp(b2_baumgarte * (separation + b2_linearSlop), -b2_maxLinearCorrection, 0.0f);
+			// Prevent large corrections
+			float C = b2Clamp(b2_baumgarte * separation, -b2_maxLinearCorrection, 0.0f);
 
 			// Compute the effective mass.
 			float rnA = b2Cross(rA, normal);

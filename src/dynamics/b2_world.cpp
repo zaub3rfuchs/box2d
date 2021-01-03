@@ -594,21 +594,17 @@ void b2World::Solve(const b2TimeStep& step)
 // Perform TOI loop
 
 // Predictive based
-// For each moving body
-// Apply forces
-// Predict new transform
-// Determine fast bodies
-// For each fast body
-// - Query broadphase for pairs
-// - Collide with TOI
-// - Build local manifolds
+// Collide with TOI prediction
+//  - no contact points if TOI predicts separation
 // Build islands
 // Per Island
+//  - apply forces
+//  - apply warm starting
 //  - solve velocity constraints
 //  - apply velocity
 //  - solve position constraints
 //  - update sleep
-// Update broad-phase
+// Update broad-phase. Use AABBs extended by prediction.
 
 void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 {
@@ -641,7 +637,6 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 	step.warmStarting = m_warmStarting;
 	
 	// Update contacts. This is where some contacts are destroyed.
-	if (step.dt > 0.0f)
 	{
 		b2Timer timer;
 

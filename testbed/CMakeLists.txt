@@ -39,6 +39,7 @@ set (TESTBED_SOURCE_FILES
 	tests/edge_test.cpp
 	tests/friction.cpp
 	tests/gear_joint.cpp
+	tests/ghost_test.cpp
 	tests/heavy1.cpp
 	tests/heavy2.cpp
 	tests/mobile_balanced.cpp

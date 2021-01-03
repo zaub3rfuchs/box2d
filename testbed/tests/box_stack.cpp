@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 #include "test.h"
+#include "imgui/imgui.h"
 
 extern B2_API bool g_blockSolve;
 
@@ -30,10 +31,8 @@ public:
 
 	enum
 	{
-		e_columnCount = 1,
-		e_rowCount = 15
-		//e_columnCount = 1,
-		//e_rowCount = 1
+		e_maxColumns = 5,
+		e_maxRows = 15
 	};
 
 	BoxStack()
@@ -50,9 +49,33 @@ public:
 			ground->CreateFixture(&shape, 0.0f);
 		}
 
+		for (int32 i = 0; i < e_maxRows * e_maxColumns; ++i)
+		{
+			m_bodies[i] = nullptr;
+		}
+
+		m_bullet = nullptr;
+
+		m_rowCount = 1;
+		m_columnCount = 1;
+
+		CreateStacks();
+	}
+
+	void CreateStacks()
+	{
+		for (int32 i = 0; i < e_maxRows * e_maxColumns; ++i)
+		{
+			if (m_bodies[i] != nullptr)
+			{
+				m_world->DestroyBody(m_bodies[i]);
+				m_bodies[i] = nullptr;
+			}
+		}
+
 		float xs[5] = {0.0f, -10.0f, -5.0f, 5.0f, 10.0f};
 
-		for (int32 j = 0; j < e_columnCount; ++j)
+		for (int32 j = 0; j < m_columnCount; ++j)
 		{
 			b2PolygonShape shape;
 			shape.SetAsBox(0.5f, 0.5f);
@@ -60,17 +83,13 @@ public:
 			b2FixtureDef fd;
 			fd.shape = &shape;
 			fd.density = 1.0f;
-			fd.friction = 0.3f;
 
-			for (int i = 0; i < e_rowCount; ++i)
+			for (int i = 0; i < m_rowCount; ++i)
 			{
 				b2BodyDef bd;
 				bd.type = b2_dynamicBody;
 
-				int32 n = j * e_rowCount + i;
-				b2Assert(n < e_rowCount * e_columnCount);
-				m_indices[n] = n;
-				bd.userData.pointer = n;
+				int32 n = j * m_rowCount + i;
 
 				float x = 0.0f;
 				//float x = RandomFloat(-0.02f, 0.02f);
@@ -83,81 +102,56 @@ public:
 				body->CreateFixture(&fd);
 			}
 		}
-
-		m_bullet = NULL;
 	}
 
-	void Keyboard(int key) override
+	void FireBullet()
 	{
-		switch (key)
+		if (m_bullet != nullptr)
 		{
-		case GLFW_KEY_COMMA:
-			if (m_bullet != NULL)
-			{
-				m_world->DestroyBody(m_bullet);
-				m_bullet = NULL;
-			}
-
-			{
-				b2CircleShape shape;
-				shape.m_radius = 0.25f;
-
-				b2FixtureDef fd;
-				fd.shape = &shape;
-				fd.density = 20.0f;
-				fd.restitution = 0.05f;
-
-				b2BodyDef bd;
-				bd.type = b2_dynamicBody;
-				bd.position.Set(-31.0f, 5.0f);
-
-				m_bullet = m_world->CreateBody(&bd);
-				m_bullet->CreateFixture(&fd);
-
-				m_bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
-			}
-			break;
-                
-        case GLFW_KEY_B:
-            g_blockSolve = !g_blockSolve;
-            break;
+			m_world->DestroyBody(m_bullet);
+			m_bullet = nullptr;
 		}
+
+		b2CircleShape shape;
+		shape.m_radius = 0.25f;
+
+		b2FixtureDef fd;
+		fd.shape = &shape;
+		fd.density = 10.0f;
+
+		b2BodyDef bd;
+		bd.type = b2_dynamicBody;
+		bd.position.Set(-31.0f, 5.0f);
+
+		m_bullet = m_world->CreateBody(&bd);
+		m_bullet->CreateFixture(&fd);
+
+		m_bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
 	}
 
-	void Step(Settings& settings) override
+	void UpdateUI() override
 	{
-		Test::Step(settings);
-		g_debugDraw.DrawString(5, m_textLine, "Press: (,) to launch a bullet.");
-		m_textLine += m_textIncrement;
-		g_debugDraw.DrawString(5, m_textLine, "Blocksolve = %d", g_blockSolve);
-		//if (m_stepCount == 300)
-		//{
-		//	if (m_bullet != NULL)
-		//	{
-		//		m_world->DestroyBody(m_bullet);
-		//		m_bullet = NULL;
-		//	}
+		ImGui::SetNextWindowPos(ImVec2(10.0f, 100.0f));
+		ImGui::SetNextWindowSize(ImVec2(240.0f, 100.0f));
+		ImGui::Begin("Box Stack", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-		//	{
-		//		b2CircleShape shape;
-		//		shape.m_radius = 0.25f;
+		bool changed = false;
+		changed = changed || ImGui::SliderInt("rows", &m_rowCount, 1, e_maxRows);
+		changed = changed || ImGui::SliderInt("columns", &m_columnCount, 1, e_maxColumns);
 
-		//		b2FixtureDef fd;
-		//		fd.shape = &shape;
-		//		fd.density = 20.0f;
-		//		fd.restitution = 0.05f;
+		if (changed)
+		{
+			CreateStacks();
+		}
 
-		//		b2BodyDef bd;
-		//		bd.type = b2_dynamicBody;
-		//		bd.bullet = true;
-		//		bd.position.Set(-31.0f, 5.0f);
+		if (ImGui::Button("Fire Bullet"))
+		{
+			FireBullet();
+		}
 
-		//		m_bullet = m_world->CreateBody(&bd);
-		//		m_bullet->CreateFixture(&fd);
+		ImGui::Checkbox("Block Solve", &g_blockSolve);
 
-		//		m_bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
-		//	}
-		//}
+		ImGui::End();
 	}
 
 	static Test* Create()
@@ -166,8 +160,9 @@ public:
 	}
 
 	b2Body* m_bullet;
-	b2Body* m_bodies[e_rowCount * e_columnCount];
-	int32 m_indices[e_rowCount * e_columnCount];
+	b2Body* m_bodies[e_maxRows * e_maxColumns];
+	int32 m_columnCount;
+	int32 m_rowCount;
 };
 
 static int testIndex = RegisterTest("Stacking", "Boxes", BoxStack::Create);

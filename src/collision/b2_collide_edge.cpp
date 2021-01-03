@@ -63,14 +63,6 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 	// Region A
 	if (v <= 0.0f)
 	{
-		b2Vec2 P = A;
-		b2Vec2 d = Q - P;
-		float dd = b2Dot(d, d);
-		if (dd > radius * radius)
-		{
-			return;
-		}
-		
 		// Is there an edge connected to A?
 		if (edgeA->m_oneSided)
 		{
@@ -91,7 +83,7 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 		manifold->pointCount = 1;
 		manifold->type = b2Manifold::e_circles;
 		manifold->localNormal.SetZero();
-		manifold->localPoint = P;
+		manifold->localPoint = A;
 		manifold->points[0].id.key = 0;
 		manifold->points[0].id.cf = cf;
 		manifold->points[0].localPoint = circleB->m_p;
@@ -101,14 +93,6 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 	// Region B
 	if (u <= 0.0f)
 	{
-		b2Vec2 P = B;
-		b2Vec2 d = Q - P;
-		float dd = b2Dot(d, d);
-		if (dd > radius * radius)
-		{
-			return;
-		}
-		
 		// Is there an edge connected to B?
 		if (edgeA->m_oneSided)
 		{
@@ -129,7 +113,7 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 		manifold->pointCount = 1;
 		manifold->type = b2Manifold::e_circles;
 		manifold->localNormal.SetZero();
-		manifold->localPoint = P;
+		manifold->localPoint = B;
 		manifold->points[0].id.key = 0;
 		manifold->points[0].id.cf = cf;
 		manifold->points[0].localPoint = circleB->m_p;
@@ -137,16 +121,6 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 	}
 	
 	// Region AB
-	float den = b2Dot(e, e);
-	b2Assert(den > 0.0f);
-	b2Vec2 P = (1.0f / den) * (u * A + v * B);
-	b2Vec2 d = Q - P;
-	float dd = b2Dot(d, d);
-	if (dd > radius * radius)
-	{
-		return;
-	}
-	
 	if (offset < 0.0f)
 	{
 		n.Set(-n.x, -n.y);

@@ -41,7 +41,6 @@ struct b2VelocityConstraintPoint
 	float normalMass;
 	float tangentMass;
 	float velocityBias;
-	float separation;
 };
 
 struct b2ContactVelocityConstraint
