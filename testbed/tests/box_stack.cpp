@@ -56,8 +56,8 @@ public:
 
 		m_bullet = nullptr;
 
-		m_rowCount = 1;
-		m_columnCount = 1;
+		m_rowCount = 10;
+		m_columnCount = 5;
 
 		CreateStacks();
 	}
@@ -91,9 +91,7 @@ public:
 
 				int32 n = j * m_rowCount + i;
 
-				float x = 0.0f;
-				//float x = RandomFloat(-0.02f, 0.02f);
-				//float x = i % 2 == 0 ? -0.01f : 0.01f;
+				float x= i % 2 == 0 ? -0.01f : 0.01f;
 				bd.position.Set(xs[j] + x, 0.55f + 1.1f * i);
 				b2Body* body = m_world->CreateBody(&bd);
 
@@ -112,8 +110,11 @@ public:
 			m_bullet = nullptr;
 		}
 
-		b2CircleShape shape;
-		shape.m_radius = 0.25f;
+		//b2CircleShape shape;
+		//shape.m_radius = 0.25f;
+
+		b2PolygonShape shape;
+		shape.SetAsBox(0.25f, 0.25f);
 
 		b2FixtureDef fd;
 		fd.shape = &shape;
@@ -132,7 +133,7 @@ public:
 	void UpdateUI() override
 	{
 		ImGui::SetNextWindowPos(ImVec2(10.0f, 100.0f));
-		ImGui::SetNextWindowSize(ImVec2(240.0f, 100.0f));
+		ImGui::SetNextWindowSize(ImVec2(240.0f, 130.0f));
 		ImGui::Begin("Box Stack", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		bool changed = false;

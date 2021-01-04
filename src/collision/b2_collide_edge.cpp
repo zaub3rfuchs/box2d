@@ -54,8 +54,6 @@ void b2CollideEdgeAndCircle(b2Manifold* manifold,
 	float u = b2Dot(e, B - Q);
 	float v = b2Dot(e, Q - A);
 	
-	float radius = edgeA->m_radius + circleB->m_radius;
-	
 	b2ContactFeature cf;
 	cf.indexB = 0;
 	cf.typeB = b2ContactFeature::e_vertex;
@@ -275,8 +273,6 @@ void b2CollideEdgeAndPolygon(b2Manifold* manifold,
 		tempPolygonB.normals[i] = b2Mul(xf.q, polygonB->m_normals[i]);
 	}
 
-	float radius = polygonB->m_radius + edgeA->m_radius;
-
 	b2EPAxis edgeAxis = b2ComputeEdgeSeparation(tempPolygonB, v1, normal1);
 	b2EPAxis polygonAxis = b2ComputePolygonSeparation(tempPolygonB, v1, v2);
 
@@ -285,7 +281,7 @@ void b2CollideEdgeAndPolygon(b2Manifold* manifold,
 	const float k_absoluteTol = 0.001f;
 
 	b2EPAxis primaryAxis;
-	if (polygonAxis.separation - radius > k_relativeTol * (edgeAxis.separation - radius) + k_absoluteTol)
+	if (polygonAxis.separation > k_relativeTol * edgeAxis.separation + k_absoluteTol)
 	{
 		primaryAxis = polygonAxis;
 	}

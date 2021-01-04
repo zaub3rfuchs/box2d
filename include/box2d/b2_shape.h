@@ -101,8 +101,8 @@ public:
 
 	Type m_type;
 
-	/// Radius of a shape. For polygonal shapes this must be b2_polygonRadius. There is no support for
-	/// making rounded polygons.
+	/// Radius of a shape
+	/// TODO only for circles
 	float m_radius;
 };
 

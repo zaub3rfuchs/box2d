@@ -87,7 +87,7 @@ public:
 inline b2PolygonShape::b2PolygonShape()
 {
 	m_type = e_polygon;
-	m_radius = b2_polygonRadius;
+	m_radius = 0.0f;
 	m_count = 0;
 	m_centroid.SetZero();
 }
