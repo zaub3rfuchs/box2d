@@ -283,7 +283,7 @@ void b2TimeOfImpact(b2TOIOutput* output, const b2TOIInput* input)
 	b2Assert(target > tolerance);
 
 	float t1 = 0.0f;
-	const int32 k_maxIterations = 20;	// TODO_ERIN b2Settings
+	const int32 k_maxIterations = 20;
 	int32 iter = 0;
 
 	// Prepare input for distance query.

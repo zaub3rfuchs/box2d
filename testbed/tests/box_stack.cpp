@@ -32,7 +32,14 @@ public:
 	enum
 	{
 		e_maxColumns = 5,
-		e_maxRows = 15
+		e_maxRows = 15,
+		e_maxBullets = 20
+	};
+
+	enum BulletType
+	{
+		e_circleBullet = 0,
+		e_boxBullet
 	};
 
 	BoxStack()
@@ -54,10 +61,15 @@ public:
 			m_bodies[i] = nullptr;
 		}
 
-		m_bullet = nullptr;
+		for (int32 i = 0; i < e_maxBullets; ++i)
+		{
+			m_bullets[i] = nullptr;
+		}
 
 		m_rowCount = 10;
 		m_columnCount = 5;
+		m_bulletCount = 1;
+		m_bulletType = e_circleBullet;
 
 		CreateStacks();
 	}
@@ -102,38 +114,53 @@ public:
 		}
 	}
 
-	void FireBullet()
+	void FireBullets()
 	{
-		if (m_bullet != nullptr)
-		{
-			m_world->DestroyBody(m_bullet);
-			m_bullet = nullptr;
-		}
+		b2CircleShape circle;
+		circle.m_radius = 0.25f;
 
-		//b2CircleShape shape;
-		//shape.m_radius = 0.25f;
-
-		b2PolygonShape shape;
-		shape.SetAsBox(0.25f, 0.25f);
+		b2PolygonShape box;
+		box.SetAsBox(0.25f, 0.25f);
 
 		b2FixtureDef fd;
-		fd.shape = &shape;
 		fd.density = 10.0f;
 
-		b2BodyDef bd;
-		bd.type = b2_dynamicBody;
-		bd.position.Set(-31.0f, 5.0f);
+		if (m_bulletType == e_circleBullet)
+		{
+			fd.shape = &circle;
+		}
+		else
+		{
+			fd.shape = &box;
+		}
 
-		m_bullet = m_world->CreateBody(&bd);
-		m_bullet->CreateFixture(&fd);
+		for (int32 i = 0; i < m_bulletCount; ++i)
+		{
+			b2Body* bullet = m_bullets[i];
 
-		m_bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
+			if (bullet != nullptr)
+			{
+				m_world->DestroyBody(bullet);
+				bullet = nullptr;
+			}
+
+			b2BodyDef bd;
+			bd.type = b2_dynamicBody;
+			bd.position.Set(-25.0f - i, 5.0f);
+
+			bullet = m_world->CreateBody(&bd);
+			bullet->CreateFixture(&fd);
+
+			bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
+
+			m_bullets[i] = bullet;
+		}
 	}
 
 	void UpdateUI() override
 	{
 		ImGui::SetNextWindowPos(ImVec2(10.0f, 100.0f));
-		ImGui::SetNextWindowSize(ImVec2(240.0f, 130.0f));
+		ImGui::SetNextWindowSize(ImVec2(240.0f, 230.0f));
 		ImGui::Begin("Box Stack", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		bool changed = false;
@@ -145,9 +172,16 @@ public:
 			CreateStacks();
 		}
 
-		if (ImGui::Button("Fire Bullet"))
+		ImGui::SliderInt("bullets", &m_bulletCount, 1, e_maxBullets);
+
+		const char* bulletTypes[] = { "Circle", "Box" };
+		int bulletType = int(m_bulletType);
+		ImGui::Combo("Bullet Type", &bulletType, bulletTypes, IM_ARRAYSIZE(bulletTypes));
+		m_bulletType = BulletType(bulletType);
+
+		if (ImGui::Button("Fire Bullets"))
 		{
-			FireBullet();
+			FireBullets();
 		}
 
 		ImGui::Checkbox("Block Solve", &g_blockSolve);
@@ -160,10 +194,12 @@ public:
 		return new BoxStack;
 	}
 
-	b2Body* m_bullet;
+	b2Body* m_bullets[e_maxBullets];
 	b2Body* m_bodies[e_maxRows * e_maxColumns];
 	int32 m_columnCount;
 	int32 m_rowCount;
+	int32 m_bulletCount;
+	BulletType m_bulletType;
 };
 
 static int testIndex = RegisterTest("Stacking", "Boxes", BoxStack::Create);
