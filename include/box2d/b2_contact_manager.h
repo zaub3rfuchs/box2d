@@ -44,7 +44,7 @@ public:
 
 	void Destroy(b2Contact* c);
 
-	void Collide();
+	void Collide(bool useSpeculation);
 
 	b2BroadPhase m_broadPhase;
 	b2Contact* m_contactList;

@@ -106,7 +106,7 @@ void b2ContactManager::Destroy(b2Contact* c)
 // This is the top level collision call for the time step. Here
 // all the narrow phase collision is processed for the world
 // contact list.
-void b2ContactManager::Collide()
+void b2ContactManager::Collide(bool useSpeculation)
 {
 	// Update awake contacts.
 	b2Contact* c = m_contactList;
@@ -168,7 +168,7 @@ void b2ContactManager::Collide()
 		}
 
 		// The contact persists.
-		c->Update(m_contactListener);
+		c->Update(m_contactListener, useSpeculation);
 		c = c->GetNext();
 	}
 }

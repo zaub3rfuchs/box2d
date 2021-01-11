@@ -407,8 +407,8 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		w *= 1.0f / (1.0f + step.dt * b->m_angularDamping);
 
 		// Stage 3 - predict new transforms
-		b->m_predictedPosition = b->m_position + step.dt * v;
-		b->m_predictedAngle = b->m_angle + step.dt * w;
+		b->m_speculativePosition = b->m_position + step.dt * v;
+		b->m_speculativeAngle = b->m_angle + step.dt * w;
 	}
 }
 

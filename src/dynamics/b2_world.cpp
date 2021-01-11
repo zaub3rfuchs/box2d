@@ -52,7 +52,7 @@ b2World::b2World(const b2Vec2& gravity)
 	m_jointCount = 0;
 
 	m_warmStarting = true;
-	m_continuousPhysics = false;
+	m_useContinuous = false;
 	m_subStepping = false;
 
 	m_stepComplete = true;
@@ -557,27 +557,56 @@ void b2World::Solve(const b2TimeStep& step)
 
 	{
 		b2Timer timer;
-		// Synchronize fixtures, check for out of range bodies.
-		for (b2Body* b = m_bodyList; b; b = b->GetNext())
+
+		if (m_useContinuous)
 		{
-			// If a body was not in an island then it did not move.
-			if ((b->m_flags & b2Body::e_islandFlag) == 0)
+			// Synchronize fixtures, check for out of range bodies.
+			for (b2Body* b = m_bodyList; b; b = b->GetNext())
 			{
-				continue;
+				// If a body was not in an island then it did not move.
+				if ((b->m_flags & b2Body::e_islandFlag) == 0)
+				{
+					continue;
+				}
+
+				if (b->GetType() == b2_staticBody)
+				{
+					continue;
+				}
+
+				// Update fixtures (for broad-phase).
+				b->SynchronizeFixturesPredicted();
 			}
 
-			if (b->GetType() == b2_staticBody)
-			{
-				continue;
-			}
+			// Look for new contacts.
+			m_contactManager.FindNewContacts();
+			m_profile.broadphase = timer.GetMilliseconds();
 
-			// Update fixtures (for broad-phase).
-			b->SynchronizeFixturesPredicted();
 		}
+		else
+		{
+			// Synchronize fixtures, check for out of range bodies.
+			for (b2Body* b = m_bodyList; b; b = b->GetNext())
+			{
+				// If a body was not in an island then it did not move.
+				if ((b->m_flags & b2Body::e_islandFlag) == 0)
+				{
+					continue;
+				}
 
-		// Look for new contacts.
-		m_contactManager.FindNewContacts();
-		m_profile.broadphase = timer.GetMilliseconds();
+				if (b->GetType() == b2_staticBody)
+				{
+					continue;
+				}
+
+				// Update fixtures (for broad-phase).
+				b->SynchronizeFixtures();
+			}
+
+			// Look for new contacts.
+			m_contactManager.FindNewContacts();
+			m_profile.broadphase = timer.GetMilliseconds();
+		}
 	}
 }
 
@@ -642,7 +671,7 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 
 		// TODO movement during first time step for a body is not predicted in broadphase
 
-		m_contactManager.Collide();
+		m_contactManager.Collide(m_useContinuous);
 		m_profile.collide = timer.GetMilliseconds();
 	}
 

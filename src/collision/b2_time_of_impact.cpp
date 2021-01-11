@@ -278,7 +278,7 @@ void b2TimeOfImpact(b2TOIOutput* output, const b2TOIInput* input)
 	float tMax = input->tMax;
 
 	float totalRadius = proxyA->m_radius + proxyB->m_radius;
-	float target = b2Max(b2_linearSlop, totalRadius - 3.0f * b2_linearSlop);
+	float target = b2Max(b2_linearSlop, totalRadius + b2_linearSlop);
 	float tolerance = 0.25f * b2_linearSlop;
 	b2Assert(target > tolerance);
 

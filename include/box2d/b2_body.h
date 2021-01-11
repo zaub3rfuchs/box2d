@@ -427,8 +427,8 @@ private:
 	float m_angle;			// rotation of body in radians
 	b2Vec2 m_localCenter;	// local center of mass position
 
-	b2Vec2 m_predictedPosition;
-	float m_predictedAngle;
+	b2Vec2 m_speculativePosition;
+	float m_speculativeAngle;
 
 	b2Vec2 m_linearVelocity;
 	float m_angularVelocity;

@@ -163,7 +163,7 @@ b2Contact::b2Contact(b2Fixture* fA, int32 indexA, b2Fixture* fB, int32 indexB)
 
 // Update the contact manifold and touching status.
 // Note: do not assume the fixture AABBs are overlapping or are valid.
-void b2Contact::Update(b2ContactListener* listener)
+void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
 {
 	b2Manifold oldManifold = m_manifold;
 
@@ -193,7 +193,7 @@ void b2Contact::Update(b2ContactListener* listener)
 
 		// Sensors don't generate manifolds.
 	}
-	else
+	else if (useSpeculation)
 	{
 		// Compute TOI
 		//
@@ -236,6 +236,34 @@ void b2Contact::Update(b2ContactListener* listener)
 						mp2->tangentImpulse = mp1->tangentImpulse;
 						break;
 					}
+				}
+			}
+		}
+	}
+	else
+	{
+		Evaluate(&m_manifold, bodyA->m_xf, bodyB->m_xf);
+
+		touching = m_manifold.pointCount > 0;
+
+		// Match old contact ids to new contact ids and copy the
+		// stored impulses to warm start the solver.
+		for (int32 i = 0; i < m_manifold.pointCount; ++i)
+		{
+			b2ManifoldPoint* mp2 = m_manifold.points + i;
+			mp2->normalImpulse = 0.0f;
+			mp2->tangentImpulse = 0.0f;
+			b2ContactID id2 = mp2->id;
+
+			for (int32 j = 0; j < oldManifold.pointCount; ++j)
+			{
+				b2ManifoldPoint* mp1 = oldManifold.points + j;
+
+				if (mp1->id.key == id2.key)
+				{
+					mp2->normalImpulse = mp1->normalImpulse;
+					mp2->tangentImpulse = mp1->tangentImpulse;
+					break;
 				}
 			}
 		}

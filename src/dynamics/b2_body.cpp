@@ -440,8 +440,8 @@ void b2Body::SynchronizeFixturesPredicted()
 	b2BroadPhase* broadPhase = &m_world->m_contactManager.m_broadPhase;
 
 	b2Transform xf2;
-	xf2.q.Set(m_predictedAngle);
-	xf2.p = m_predictedPosition - b2Mul(xf2.q, m_localCenter);
+	xf2.q.Set(m_speculativeAngle);
+	xf2.p = m_speculativePosition - b2Mul(xf2.q, m_localCenter);
 
 	for (b2Fixture* f = m_fixtureList; f; f = f->m_next)
 	{
@@ -462,9 +462,9 @@ b2Sweep b2Body::GetSweep() const
 	else
 	{
 		s.c1 = m_position;
-		s.c2 = m_predictedPosition;
+		s.c2 = m_speculativePosition;
 		s.a1 = m_angle;
-		s.a2 = m_predictedAngle;
+		s.a2 = m_speculativeAngle;
 	}
 
 	s.localCenter = m_localCenter;

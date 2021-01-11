@@ -36,10 +36,10 @@ public:
 		e_maxBullets = 20
 	};
 
-	enum BulletType
+	enum ShapeType
 	{
-		e_circleBullet = 0,
-		e_boxBullet
+		e_circleShape = 0,
+		e_boxShape
 	};
 
 	BoxStack()
@@ -66,10 +66,11 @@ public:
 			m_bullets[i] = nullptr;
 		}
 
+		m_shapeType = e_boxShape;
 		m_rowCount = 10;
 		m_columnCount = 5;
 		m_bulletCount = 1;
-		m_bulletType = e_circleBullet;
+		m_bulletType = e_circleShape;
 
 		CreateStacks();
 	}
@@ -87,15 +88,31 @@ public:
 
 		float xs[5] = {0.0f, -10.0f, -5.0f, 5.0f, 10.0f};
 
+		b2CircleShape circle;
+		circle.m_radius = 0.5f;
+
+		b2PolygonShape box;
+		box.SetAsBox(0.5f, 0.5f);
+
+		b2FixtureDef fd;
+		fd.density = 1.0f;
+		fd.friction = 0.6f;
+
+		float offset;
+
+		if (m_shapeType == e_circleShape)
+		{
+			fd.shape = &circle;
+			offset = 0.0f;
+		}
+		else
+		{
+			fd.shape = &box;
+			offset = 0.01f;
+		}
+
 		for (int32 j = 0; j < m_columnCount; ++j)
 		{
-			b2PolygonShape shape;
-			shape.SetAsBox(0.5f, 0.5f);
-
-			b2FixtureDef fd;
-			fd.shape = &shape;
-			fd.density = 1.0f;
-
 			for (int i = 0; i < m_rowCount; ++i)
 			{
 				b2BodyDef bd;
@@ -103,13 +120,27 @@ public:
 
 				int32 n = j * m_rowCount + i;
 
-				float x= i % 2 == 0 ? -0.01f : 0.01f;
+				float x = (i % 2 == 0 ? -offset : offset);
 				bd.position.Set(xs[j] + x, 0.55f + 1.1f * i);
 				b2Body* body = m_world->CreateBody(&bd);
 
 				m_bodies[n] = body;
 
 				body->CreateFixture(&fd);
+			}
+		}
+	}
+
+	void DestroyBullets()
+	{
+		for (int32 i = 0; i < e_maxBullets; ++i)
+		{
+			b2Body* bullet = m_bullets[i];
+
+			if (bullet != nullptr)
+			{
+				m_world->DestroyBody(bullet);
+				m_bullets[i] = nullptr;
 			}
 		}
 	}
@@ -123,9 +154,10 @@ public:
 		box.SetAsBox(0.25f, 0.25f);
 
 		b2FixtureDef fd;
-		fd.density = 10.0f;
+		fd.density = 2.0f;
+		fd.friction = 0.6f;
 
-		if (m_bulletType == e_circleBullet)
+		if (m_bulletType == e_circleShape)
 		{
 			fd.shape = &circle;
 		}
@@ -136,23 +168,16 @@ public:
 
 		for (int32 i = 0; i < m_bulletCount; ++i)
 		{
-			b2Body* bullet = m_bullets[i];
-
-			if (bullet != nullptr)
-			{
-				m_world->DestroyBody(bullet);
-				bullet = nullptr;
-			}
-
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
 			bd.position.Set(-25.0f - i, 5.0f);
 
-			bullet = m_world->CreateBody(&bd);
+			b2Body* bullet = m_world->CreateBody(&bd);
 			bullet->CreateFixture(&fd);
 
 			bullet->SetLinearVelocity(b2Vec2(400.0f, 0.0f));
 
+			b2Assert(m_bullets[i] == nullptr);
 			m_bullets[i] = bullet;
 		}
 	}
@@ -164,27 +189,37 @@ public:
 		ImGui::Begin("Box Stack", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		bool changed = false;
-		changed = changed || ImGui::SliderInt("rows", &m_rowCount, 1, e_maxRows);
-		changed = changed || ImGui::SliderInt("columns", &m_columnCount, 1, e_maxColumns);
+		const char* shapeTypes[] = { "Circle", "Box" };
 
-		if (changed)
-		{
-			CreateStacks();
-		}
+		int shapeType = int(m_shapeType);
+		changed = changed || ImGui::Combo("Shape", &shapeType, shapeTypes, IM_ARRAYSIZE(shapeTypes));
+		m_shapeType = ShapeType(shapeType);
 
-		ImGui::SliderInt("bullets", &m_bulletCount, 1, e_maxBullets);
 
-		const char* bulletTypes[] = { "Circle", "Box" };
+		changed = changed || ImGui::SliderInt("Rows", &m_rowCount, 1, e_maxRows);
+		changed = changed || ImGui::SliderInt("Columns", &m_columnCount, 1, e_maxColumns);
+
+		ImGui::SliderInt("Bullets", &m_bulletCount, 1, e_maxBullets);
+
 		int bulletType = int(m_bulletType);
-		ImGui::Combo("Bullet Type", &bulletType, bulletTypes, IM_ARRAYSIZE(bulletTypes));
-		m_bulletType = BulletType(bulletType);
+		ImGui::Combo("Bullet Shape", &bulletType, shapeTypes, IM_ARRAYSIZE(shapeTypes));
+		m_bulletType = ShapeType(bulletType);
 
 		if (ImGui::Button("Fire Bullets"))
 		{
+			DestroyBullets();
 			FireBullets();
 		}
 
 		ImGui::Checkbox("Block Solve", &g_blockSolve);
+
+		changed = changed || ImGui::Button("Reset Stack");
+
+		if (changed)
+		{
+			DestroyBullets();
+			CreateStacks();
+		}
 
 		ImGui::End();
 	}
@@ -199,7 +234,8 @@ public:
 	int32 m_columnCount;
 	int32 m_rowCount;
 	int32 m_bulletCount;
-	BulletType m_bulletType;
+	ShapeType m_shapeType;
+	ShapeType m_bulletType;
 };
 
 static int testIndex = RegisterTest("Stacking", "Boxes", BoxStack::Create);
