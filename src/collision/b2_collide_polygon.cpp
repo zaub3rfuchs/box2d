@@ -193,13 +193,17 @@ void b2CollidePolygons(b2Manifold* manifold,
 	b2ClipVertex clipPoints2[2];
 	int np;
 
-	// Clip to box side 1
+	// TODO stabilize ids by using only vertex indices?
+
+	// First side edge
 	np = b2ClipSegmentToLine(clipPoints1, incidentEdge, -tangent, sideOffset1, iv1);
 
 	if (np < 2)
+	{
 		return;
+	}
 
-	// Clip to negative box side 1
+	// Second side edge
 	np = b2ClipSegmentToLine(clipPoints2, clipPoints1,  tangent, sideOffset2, iv2);
 
 	if (np < 2)

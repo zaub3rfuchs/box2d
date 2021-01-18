@@ -581,7 +581,6 @@ void b2World::Solve(const b2TimeStep& step)
 			// Look for new contacts.
 			m_contactManager.FindNewContacts();
 			m_profile.broadphase = timer.GetMilliseconds();
-
 		}
 		else
 		{
@@ -671,7 +670,7 @@ void b2World::Step(float dt, int32 velocityIterations, int32 positionIterations)
 
 		// TODO movement during first time step for a body is not predicted in broadphase
 
-		m_contactManager.Collide(m_useContinuous);
+		m_contactManager.Collide();
 		m_profile.collide = timer.GetMilliseconds();
 	}
 

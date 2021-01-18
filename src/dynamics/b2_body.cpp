@@ -65,6 +65,9 @@ b2Body::b2Body(const b2BodyDef* bd, b2World* world)
 	m_position = m_xf.p;
 	m_angle = bd->angle;
 
+	m_speculativePosition = m_position;
+	m_speculativeAngle = m_angle;
+
 	m_jointList = nullptr;
 	m_contactList = nullptr;
 	m_prev = nullptr;

@@ -166,7 +166,7 @@ void b2Fixture::Synchronize(b2BroadPhase* broadPhase, const b2Transform& transfo
 
 		// Compute an AABB that covers the swept shape (may miss some rotation effect).
 		m_shape->ComputeAABB(&proxy->aabb, transform, proxy->childIndex);
-		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb, b2Vec2_zero);
+		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb);
 	}
 }
 
@@ -188,7 +188,7 @@ void b2Fixture::Synchronize(b2BroadPhase* broadPhase, const b2Transform& transfo
 	
 		proxy->aabb.Combine(aabb1, aabb2);
 
-		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb, b2Vec2_zero);
+		broadPhase->MoveProxy(proxy->proxyId, proxy->aabb);
 	}
 }
 

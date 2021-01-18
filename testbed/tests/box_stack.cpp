@@ -67,8 +67,8 @@ public:
 		}
 
 		m_shapeType = e_boxShape;
-		m_rowCount = 10;
-		m_columnCount = 5;
+		m_rowCount = 2;
+		m_columnCount = 1;
 		m_bulletCount = 1;
 		m_bulletType = e_circleShape;
 
@@ -108,7 +108,8 @@ public:
 		else
 		{
 			fd.shape = &box;
-			offset = 0.01f;
+			offset = 0.0f;
+			//offset = 0.01f;
 		}
 
 		for (int32 j = 0; j < m_columnCount; ++j)

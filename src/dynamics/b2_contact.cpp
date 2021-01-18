@@ -163,7 +163,7 @@ b2Contact::b2Contact(b2Fixture* fA, int32 indexA, b2Fixture* fB, int32 indexB)
 
 // Update the contact manifold and touching status.
 // Note: do not assume the fixture AABBs are overlapping or are valid.
-void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
+void b2Contact::Update(b2ContactListener* listener)
 {
 	b2Manifold oldManifold = m_manifold;
 
@@ -184,6 +184,8 @@ void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
 	const b2Shape* shapeA = m_fixtureA->GetShape();
 	const b2Shape* shapeB = m_fixtureB->GetShape();
 
+	bool noStatic = bodyA->m_type != b2_staticBody && bodyB->m_type != b2_staticBody;
+
 	// Is this contact a sensor?
 	if (sensor)
 	{
@@ -193,10 +195,9 @@ void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
 
 		// Sensors don't generate manifolds.
 	}
-	else if (useSpeculation)
+	else
 	{
 		// Compute TOI
-		//
 		b2TOIInput input;
 		input.proxyA.Set(shapeA, m_indexA);
 		input.proxyB.Set(shapeB, m_indexB);
@@ -207,7 +208,7 @@ void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
 		b2TOIOutput output;
 		b2TimeOfImpact(&output, &input);
 
-		if (output.state != b2TOIOutput::e_separated)
+		if (output.state != b2TOIOutput::e_separated || noStatic)
 		{
 			b2Transform xfA, xfB;
 			input.sweepA.GetTransform(&xfA, output.t);
@@ -236,34 +237,6 @@ void b2Contact::Update(b2ContactListener* listener, bool useSpeculation)
 						mp2->tangentImpulse = mp1->tangentImpulse;
 						break;
 					}
-				}
-			}
-		}
-	}
-	else
-	{
-		Evaluate(&m_manifold, bodyA->m_xf, bodyB->m_xf);
-
-		touching = m_manifold.pointCount > 0;
-
-		// Match old contact ids to new contact ids and copy the
-		// stored impulses to warm start the solver.
-		for (int32 i = 0; i < m_manifold.pointCount; ++i)
-		{
-			b2ManifoldPoint* mp2 = m_manifold.points + i;
-			mp2->normalImpulse = 0.0f;
-			mp2->tangentImpulse = 0.0f;
-			b2ContactID id2 = mp2->id;
-
-			for (int32 j = 0; j < oldManifold.pointCount; ++j)
-			{
-				b2ManifoldPoint* mp1 = oldManifold.points + j;
-
-				if (mp1->id.key == id2.key)
-				{
-					mp2->normalImpulse = mp1->normalImpulse;
-					mp2->tangentImpulse = mp1->tangentImpulse;
-					break;
 				}
 			}
 		}
