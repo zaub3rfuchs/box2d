@@ -108,8 +108,7 @@ public:
 		else
 		{
 			fd.shape = &box;
-			offset = 0.0f;
-			//offset = 0.01f;
+			offset = 0.01f;
 		}
 
 		for (int32 j = 0; j < m_columnCount; ++j)

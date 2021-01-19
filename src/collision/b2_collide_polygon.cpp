@@ -23,6 +23,8 @@
 #include "box2d/b2_collision.h"
 #include "box2d/b2_polygon_shape.h"
 
+// TODO try O(n) algorithm in de Berg p. 279
+
 // Find the max separation between poly1 and poly2 using edge normals from poly1.
 static float b2FindMaxSeparation(int32* edgeIndex,
 								 const b2PolygonShape* poly1, const b2Transform& xf1,

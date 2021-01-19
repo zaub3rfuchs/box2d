@@ -225,6 +225,7 @@ void b2Contact::Update(b2ContactListener* listener)
 				b2ManifoldPoint* mp2 = m_manifold.points + i;
 				mp2->normalImpulse = 0.0f;
 				mp2->tangentImpulse = 0.0f;
+				mp2->persisted = false;
 				b2ContactID id2 = mp2->id;
 
 				for (int32 j = 0; j < oldManifold.pointCount; ++j)
@@ -235,9 +236,16 @@ void b2Contact::Update(b2ContactListener* listener)
 					{
 						mp2->normalImpulse = mp1->normalImpulse;
 						mp2->tangentImpulse = mp1->tangentImpulse;
+						mp2->persisted = true;
 						break;
 					}
 				}
+
+				// For debugging ids
+				//if (mp2->persisted == false && m_manifold.pointCount == oldManifold.pointCount)
+				//{
+				//	i += 0;
+				//}
 			}
 		}
 	}

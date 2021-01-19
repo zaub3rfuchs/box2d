@@ -411,7 +411,12 @@ void Test::Step(Settings& settings)
 		{
 			ContactPoint* point = m_points + i;
 
-			if (point->state == b2_addState)
+			if (point->separation > b2_linearSlop)
+			{
+				// Speculative
+				g_debugDraw.DrawPoint(point->position, 5.0f, b2Color(0.3f, 0.3f, 0.3f));
+			}
+			else if (point->state == b2_addState)
 			{
 				// Add
 				g_debugDraw.DrawPoint(point->position, 10.0f, b2Color(0.3f, 0.95f, 0.3f));

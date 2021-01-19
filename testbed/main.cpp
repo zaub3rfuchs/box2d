@@ -442,9 +442,6 @@ static void UpdateUI()
 							ImGui::TreeNodeEx((void*)(intptr_t)i, leafNodeFlags | selectionFlags, "%s", g_testEntries[i].name);
 							if (ImGui::IsItemClicked())
 							{
-								delete s_test;
-								s_settings.m_testIndex = i;
-								s_test = g_testEntries[i].createFcn();
 								s_testSelection = i;
 							}
 							++i;
