@@ -268,6 +268,9 @@ void b2Island::Solve(b2Profile* profile, const b2TimeStep& step, const b2Vec2& g
 		contactSolver.SolveVelocityConstraints();
 	}
 
+	// Special handling for restitution
+	contactSolver.ApplyRestitution();
+
 	// Store impulses for warm starting
 	contactSolver.StoreImpulses();
 	profile->solveVelocity = timer.GetMilliseconds();

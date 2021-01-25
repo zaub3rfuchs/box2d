@@ -211,13 +211,11 @@ void b2ContactSolver::InitializeVelocityConstraints()
 
 			vcp->tangentMass = kTangent > 0.0f ? 1.0f /  kTangent : 0.0f;
 
-			// Setup a velocity bias for restitution.
+			// Velocity bias for speculative collision
 			vcp->velocityBias = -b2Max(0.0f, worldManifold.separations[j] * m_step.inv_dt);
-			float vRel = b2Dot(vc->normal, vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA));
-			//if (vRel < -vc->threshold)
-			//{
-			//	vcp->velocityBias += -vc->restitution * vRel;
-			//}
+
+			// Relative velocity
+			vcp->relativeVelocity = b2Dot(vc->normal, vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA));
 		}
 
 		// If we have two points, then prepare the block solver.
@@ -597,6 +595,64 @@ void b2ContactSolver::SolveVelocityConstraints()
 				// No solution, give up. This is hit sometimes, but it doesn't seem to matter.
 				break;
 			}
+		}
+
+		m_velocities[indexA].v = vA;
+		m_velocities[indexA].w = wA;
+		m_velocities[indexB].v = vB;
+		m_velocities[indexB].w = wB;
+	}
+}
+
+void b2ContactSolver::ApplyRestitution()
+{
+	for (int32 i = 0; i < m_count; ++i)
+	{
+		b2ContactVelocityConstraint* vc = m_velocityConstraints + i;
+
+		if (vc->restitution == 0.0f)
+		{
+			continue;
+		}
+
+		int32 indexA = vc->indexA;
+		int32 indexB = vc->indexB;
+		float mA = vc->invMassA;
+		float iA = vc->invIA;
+		float mB = vc->invMassB;
+		float iB = vc->invIB;
+		int32 pointCount = vc->pointCount;
+
+		b2Vec2 vA = m_velocities[indexA].v;
+		float wA = m_velocities[indexA].w;
+		b2Vec2 vB = m_velocities[indexB].v;
+		float wB = m_velocities[indexB].w;
+
+		b2Vec2 normal = vc->normal;
+
+		for (int32 j = 0; j < pointCount; ++j)
+		{
+			b2VelocityConstraintPoint* vcp = vc->points + j;
+
+			if (vcp->relativeVelocity > -vc->threshold || vcp->normalImpulse == 0.0f)
+			{
+				continue;
+			}
+
+			// Relative velocity at contact
+			b2Vec2 dv = vB + b2Cross(wB, vcp->rB) - vA - b2Cross(wA, vcp->rA);
+
+			// Compute normal impulse
+			float vn = b2Dot(dv, normal);
+			float lambda = -vcp->normalMass * (vn + vc->restitution * vcp->relativeVelocity);
+
+			// Apply contact impulse
+			b2Vec2 P = lambda * normal;
+			vA -= mA * P;
+			wA -= iA * b2Cross(vcp->rA, P);
+
+			vB += mB * P;
+			wB += iB * b2Cross(vcp->rB, P);
 		}
 
 		m_velocities[indexA].v = vA;
