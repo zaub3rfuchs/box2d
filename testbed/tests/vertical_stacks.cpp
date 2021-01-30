@@ -25,7 +25,7 @@
 
 extern B2_API bool g_blockSolve;
 
-class BoxStack : public Test
+class VerticalStacks : public Test
 {
 public:
 
@@ -42,7 +42,7 @@ public:
 		e_boxShape
 	};
 
-	BoxStack()
+	VerticalStacks()
 	{
 		{
 			b2BodyDef bd;
@@ -186,7 +186,7 @@ public:
 	{
 		ImGui::SetNextWindowPos(ImVec2(10.0f, 100.0f));
 		ImGui::SetNextWindowSize(ImVec2(240.0f, 230.0f));
-		ImGui::Begin("Box Stack", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		ImGui::Begin("Stacks", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
 		bool changed = false;
 		const char* shapeTypes[] = { "Circle", "Box" };
@@ -226,7 +226,7 @@ public:
 
 	static Test* Create()
 	{
-		return new BoxStack;
+		return new VerticalStacks;
 	}
 
 	b2Body* m_bullets[e_maxBullets];
@@ -238,4 +238,4 @@ public:
 	ShapeType m_bulletType;
 };
 
-static int testIndex = RegisterTest("Stacking", "Boxes", BoxStack::Create);
+static int testIndex = RegisterTest("Stacking", "Vertical Stacks", VerticalStacks::Create);
