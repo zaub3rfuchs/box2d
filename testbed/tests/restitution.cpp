@@ -31,7 +31,7 @@ public:
 
 	enum
 	{
-		e_count = 7,
+		e_count = 11,
 	};
 
 	enum ShapeType
@@ -60,6 +60,8 @@ public:
 		for (int32 i = 0; i < e_count; ++i)
 		{
 			m_bodies[i] = nullptr;
+			m_restitutions[i] = 0.1f * i;
+			m_xcoords[i] = -10.0f + 3.0f * i;
 		}
 
 		CreateShapes();
@@ -94,17 +96,15 @@ public:
 			fd.shape = &box;
 		}
 
-		float restitution[7] = { 0.0f, 0.1f, 0.3f, 0.5f, 0.75f, 0.9f, 1.0f };
-
-		for (int32 i = 0; i < 7; ++i)
+		for (int32 i = 0; i < e_count; ++i)
 		{
 			b2BodyDef bd;
 			bd.type = b2_dynamicBody;
-			bd.position.Set(-10.0f + 3.0f * i, 20.0f);
+			bd.position.Set(m_xcoords[i], 20.0f);
 
 			b2Body* body = m_world->CreateBody(&bd);
 
-			fd.restitution = restitution[i];
+			fd.restitution = m_restitutions[i];
 			fd.restitutionThreshold = m_threshold;
 			body->CreateFixture(&fd);
 
@@ -136,12 +136,25 @@ public:
 		ImGui::End();
 	}
 
+	void Step(Settings& settings) override
+	{
+		for (int32 i = 0; i < e_count; ++i)
+		{
+			b2Vec2 p(m_xcoords[i], -1.0f);
+			g_debugDraw.DrawString(p, "%g", m_restitutions[i]);
+		}
+
+		Test::Step(settings);
+	}
+
 	static Test* Create()
 	{
 		return new Restitution;
 	}
 
 	b2Body* m_bodies[e_count];
+	float m_restitutions[e_count];
+	float m_xcoords[e_count];
 	float m_threshold;
 	ShapeType m_shapeType;
 };
